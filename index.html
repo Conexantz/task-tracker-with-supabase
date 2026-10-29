@@ -9,7 +9,7 @@
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible+Next:wght@400;500;700&family=IBM+Plex+Mono:wght@500&display=swap">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
 <style>
-/* Layout: one calm column — add form, summary strip, then one card per owner in a responsive grid */
+/* Layout: one calm column — sign-in card, or add form, summary strip, then one card per owner in a responsive grid */
 :root {
   --bg: #F1F2F3;
   --surface: #FFFFFF;
@@ -51,10 +51,11 @@ body {
   padding-block: 40px 64px;
 }
 .wrap { max-width: 1080px; margin: 0 auto; display: grid; gap: 28px; }
+.view { display: grid; gap: 28px; }
 
-header { display: flex; flex-wrap: wrap; align-items: end; justify-content: space-between; gap: 12px; }
+header { display: flex; flex-wrap: wrap; align-items: end; justify-content: space-between; gap: 12px 20px; }
 h1 { font-size: 2.1rem; line-height: 1.15; margin: 0; font-weight: 700; letter-spacing: -0.01em; text-wrap: balance; }
-.head-meta { display: flex; flex-wrap: wrap; align-items: center; gap: 14px; }
+.head-meta { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 16px; }
 .today { font-family: var(--font-data); font-size: 0.9rem; color: var(--muted); }
 .conn { display: inline-flex; align-items: center; gap: 8px; font-size: 0.85rem; font-weight: 700; color: var(--muted); }
 .conn::before { content: ""; width: 9px; height: 9px; border-radius: 50%; background: var(--muted); }
@@ -63,24 +64,44 @@ h1 { font-size: 2.1rem; line-height: 1.15; margin: 0; font-weight: 700; letter-s
 .conn.down { color: var(--late); }
 .conn.down::before { background: var(--late); }
 
-.panel { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); padding: 24px; }
+.userbar { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 14px; font-size: 1rem; }
+.userbar .who { font-weight: 700; }
+.userbar .role { font-size: 0.75rem; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: var(--accent); background: var(--accent-soft); border-radius: 999px; padding: 2px 9px; }
+.btn-ghost {
+  font: inherit; font-size: 0.95rem; font-weight: 700; color: var(--ink); background: var(--surface);
+  border: 1px solid var(--line); border-radius: 10px; padding: 7px 14px; cursor: pointer;
+}
+.btn-ghost:hover { border-color: var(--muted); }
+.btn-ghost[aria-pressed="true"] { border-color: var(--accent); color: var(--accent); }
 
-/* Add form */
-form { display: grid; grid-template-columns: minmax(0, 2.2fr) minmax(0, 1fr) minmax(0, 1fr) auto; gap: 14px; align-items: end; }
+.panel { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); padding: 24px; }
+.panel h2 { font-size: 1.35rem; margin: 0 0 4px; }
+.panel .lead { margin: 0 0 20px; color: var(--muted); font-size: 1rem; max-width: 60ch; }
+
+/* Sign-in and password cards */
+.narrow { width: 100%; max-width: 460px; margin: 4vh auto 0; }
+.stack { display: grid; gap: 16px; }
+.stack .btn-primary { width: 100%; }
+.row-links { display: flex; flex-wrap: wrap; gap: 8px 20px; justify-content: space-between; align-items: center; }
+.hint { font-size: 0.9rem; color: var(--muted); margin: 0; }
+
+/* Forms */
+form.add { display: grid; grid-template-columns: minmax(0, 2.2fr) minmax(0, 1fr) minmax(0, 1fr) auto; gap: 14px; align-items: end; }
 .field { display: grid; gap: 6px; min-width: 0; }
 .field label { font-size: 0.8rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; color: var(--muted); }
-input[type="text"], input[type="date"] {
+input[type="text"], input[type="date"], input[type="password"], select {
   font: inherit; font-size: 1.05rem; color: var(--ink); background: var(--bg);
   border: 1px solid var(--line); border-radius: 10px; padding: 12px 14px; width: 100%; min-width: 0;
 }
-input:focus-visible, button:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+input:focus-visible, button:focus-visible, select:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
 .btn-primary {
   font: inherit; font-weight: 700; font-size: 1.05rem; color: var(--on-accent); background: var(--accent);
   border: 0; border-radius: 10px; padding: 12px 22px; cursor: pointer; white-space: nowrap;
 }
 .btn-primary:hover { filter: brightness(1.06); }
-.btn-primary:disabled { opacity: 0.6; cursor: progress; }
+.btn-primary:disabled, .btn-ghost:disabled { opacity: 0.6; cursor: progress; }
 .form-error { grid-column: 1 / -1; color: var(--late); font-size: 0.95rem; margin: 0; }
+.form-ok { grid-column: 1 / -1; color: var(--ok); font-size: 0.95rem; margin: 0; }
 
 /* Summary */
 .summary { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; }
@@ -104,15 +125,32 @@ input:focus-visible, button:focus-visible { outline: 3px solid var(--accent); ou
 .btn-link { font: inherit; font-weight: 700; color: var(--accent); background: none; border: 0; padding: 4px 0; cursor: pointer; text-decoration: underline; text-underline-offset: 3px; }
 .note.error .btn-link { color: var(--late); }
 
+/* Team admin */
+.team-grid { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.3fr); gap: 28px; align-items: start; }
+form.new-user { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 14px; align-items: end; }
+form.new-user .btn-primary { grid-column: 1 / -1; }
+.team-title { font-size: 0.8rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; color: var(--muted); margin: 0 0 10px; }
+ul.team { list-style: none; margin: 0; padding: 0; border: 1px solid var(--line); border-radius: 12px; overflow: hidden; }
+ul.team li { padding: 12px 16px; display: grid; grid-template-columns: auto minmax(0, 1fr) auto; gap: 12px; align-items: center; }
+ul.team li + li { border-top: 1px solid var(--line); }
+.member-name { font-weight: 700; overflow-wrap: anywhere; }
+.member-sub { font-family: var(--font-data); font-size: 0.82rem; color: var(--muted); display: flex; flex-wrap: wrap; gap: 4px 10px; align-items: center; }
+.reset-row { grid-column: 1 / -1; display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
+.reset-row input { flex: 1 1 160px; width: auto; }
+
 /* Owner cards */
 .owners { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 330px), 1fr)); gap: 18px; align-items: start; }
 .owner { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); overflow: hidden; }
+.owner.mine { border-color: var(--accent); }
 .owner-head { display: flex; align-items: center; gap: 12px; padding: 18px 22px; border-bottom: 1px solid var(--line); }
 .avatar {
   width: 40px; height: 40px; border-radius: 50%; flex: none; display: grid; place-items: center;
   background: var(--bg); border: 1px solid var(--line); font-weight: 700; font-size: 1rem; color: var(--ink);
 }
-.owner-name { font-size: 1.25rem; font-weight: 700; margin: 0; min-width: 0; overflow-wrap: anywhere; }
+.owner.mine .avatar { background: var(--accent-soft); border-color: var(--accent); color: var(--accent); }
+.owner-title { min-width: 0; display: grid; }
+.owner-name { font-size: 1.25rem; font-weight: 700; margin: 0; overflow-wrap: anywhere; line-height: 1.25; }
+.owner-sub { font-size: 0.85rem; color: var(--muted); }
 .owner-count { margin-left: auto; font-size: 0.9rem; color: var(--muted); white-space: nowrap; font-variant-numeric: tabular-nums; }
 .owner-count b { color: var(--late); font-weight: 700; }
 
@@ -124,10 +162,12 @@ li.item.overdue { background: var(--late-soft); }
 .text { font-size: 1.1rem; overflow-wrap: anywhere; cursor: pointer; }
 .meta { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin-top: 6px; }
 .due { font-family: var(--font-data); font-size: 0.85rem; color: var(--muted); }
-.pill { font-size: 0.78rem; font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase; border-radius: 999px; padding: 2px 10px; }
+.pill { font-size: 0.78rem; font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase; border-radius: 999px; padding: 2px 10px; white-space: nowrap; }
 .pill.late { background: var(--late); color: var(--surface); }
 .pill.today { background: var(--accent-soft); color: var(--accent); }
 .pill.ex { border: 1px dashed var(--muted); color: var(--muted); }
+.pill.wait { background: var(--accent-soft); color: var(--accent); }
+.pill.on { border: 1px solid var(--line); color: var(--muted); }
 li.overdue .text, li.overdue .due { color: var(--late); }
 li.done .text { color: var(--muted); text-decoration: line-through; }
 li.pending { opacity: 0.6; }
@@ -149,15 +189,16 @@ li.pending { opacity: 0.6; }
 }
 .toast button { font: inherit; font-weight: 700; color: var(--accent); background: none; border: 0; cursor: pointer; }
 
+@media (max-width: 860px) { .team-grid { grid-template-columns: minmax(0, 1fr); } }
 @media (max-width: 760px) {
   body { font-size: 17px; padding-block: 24px 48px; }
-  form { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
-  .field.wide, .btn-primary { grid-column: 1 / -1; }
+  form.add { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
+  form.add .field.wide, form.add .btn-primary { grid-column: 1 / -1; }
   .stat { padding: 14px 16px; }
   .stat .num { font-size: 1.9rem; }
   .panel { padding: 18px; }
 }
-@media (max-width: 420px) { form { grid-template-columns: minmax(0, 1fr); } }
+@media (max-width: 420px) { form.add, form.new-user { grid-template-columns: minmax(0, 1fr); } }
 @media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
 </style>
 </head>
@@ -166,54 +207,152 @@ li.pending { opacity: 0.6; }
   <header>
     <h1>Meeting actions</h1>
     <div class="head-meta">
-      <span class="conn" id="conn">Connecting…</span>
+      <span class="conn" id="conn" hidden>Connecting…</span>
       <span class="today" id="todayLabel"></span>
     </div>
   </header>
 
-  <section class="panel" aria-label="Add an action">
-    <form id="addForm" novalidate>
-      <div class="field wide">
-        <label for="fText">Action agreed</label>
-        <input type="text" id="fText" maxlength="500" placeholder="e.g. Send revised budget to finance" autocomplete="off">
-      </div>
-      <div class="field">
-        <label for="fOwner">Owner</label>
-        <input type="text" id="fOwner" maxlength="100" list="ownerList" placeholder="Name" autocomplete="off">
-        <datalist id="ownerList"></datalist>
-      </div>
-      <div class="field">
-        <label for="fDue">Due date</label>
-        <input type="date" id="fDue">
-      </div>
-      <button class="btn-primary" id="addBtn" type="submit">Add action</button>
-      <p class="form-error" id="formError" hidden></p>
-    </form>
+  <!-- Signed-in user bar -->
+  <div class="userbar" id="userbar" hidden>
+    <span>Signed in as <span class="who" id="whoName"></span></span>
+    <span class="role" id="whoRole" hidden>Admin</span>
+    <button class="btn-ghost" type="button" id="teamBtn" aria-pressed="false" hidden>Manage team</button>
+    <button class="btn-ghost" type="button" id="changePwBtn">Change password</button>
+    <button class="btn-ghost" type="button" id="signOutBtn">Sign out</button>
+  </div>
+
+  <!-- Loading -->
+  <section class="view" id="bootView">
+    <div class="panel empty"><strong>Loading…</strong>Checking your sign-in.</div>
   </section>
 
-  <section class="summary" aria-label="Summary">
-    <div class="stat open"><span class="num" id="sOpen">–</span><span class="lbl">Open</span></div>
-    <div class="stat done"><span class="num" id="sDone">–</span><span class="lbl">Done</span></div>
-    <div class="stat late" id="sLateBox"><span class="num" id="sLate">–</span><span class="lbl">Overdue</span></div>
+  <!-- Sign in -->
+  <section class="view" id="authView" hidden>
+    <div class="panel narrow">
+      <h2>Sign in</h2>
+      <p class="lead">Use the username and password your admin gave you.</p>
+      <form class="stack" id="signInForm" novalidate>
+        <div class="field">
+          <label for="siUser">Username</label>
+          <input type="text" id="siUser" autocomplete="username" autocapitalize="none" spellcheck="false" placeholder="e.g. priya">
+        </div>
+        <div class="field">
+          <label for="siPass">Password</label>
+          <input type="password" id="siPass" autocomplete="current-password">
+        </div>
+        <p class="form-error" id="siError" hidden></p>
+        <button class="btn-primary" type="submit" id="siBtn">Sign in</button>
+        <p class="hint">Forgotten your password? Ask your admin to reset it.</p>
+      </form>
+    </div>
   </section>
 
-  <div class="note error" id="loadError" hidden>
-    <span id="loadErrorMsg">Couldn't load actions.</span>
-    <button class="btn-link" id="retryLoad" type="button">Try again</button>
-  </div>
+  <!-- Set / change password -->
+  <section class="view" id="pwView" hidden>
+    <div class="panel narrow">
+      <h2 id="pwTitle">Choose your password</h2>
+      <p class="lead" id="pwLead">You signed in with a temporary password. Choose your own to continue.</p>
+      <form class="stack" id="pwForm" novalidate>
+        <div class="field">
+          <label for="pwNew">New password</label>
+          <input type="password" id="pwNew" autocomplete="new-password" minlength="8">
+        </div>
+        <div class="field">
+          <label for="pwConfirm">Type it again</label>
+          <input type="password" id="pwConfirm" autocomplete="new-password" minlength="8">
+        </div>
+        <p class="hint">At least 8 characters.</p>
+        <p class="form-error" id="pwError" hidden></p>
+        <button class="btn-primary" type="submit" id="pwBtn">Save password</button>
+        <div class="row-links">
+          <button class="btn-link" type="button" id="pwCancel" hidden>Cancel</button>
+          <button class="btn-link" type="button" id="pwSignOut">Sign out</button>
+        </div>
+      </form>
+    </div>
+  </section>
 
-  <div class="note" id="exampleNote" hidden>
-    <span>These are example actions so you can see how it works.</span>
-    <button class="btn-link" id="clearExamples" type="button">Remove examples</button>
-  </div>
+  <!-- Tracker -->
+  <section class="view" id="appView" hidden>
 
-  <div class="toolbar">
-    <h2>By owner</h2>
-    <label class="toggle"><input type="checkbox" id="showDone" checked> Show done actions</label>
-  </div>
+    <section class="panel" id="teamPanel" aria-label="Manage team" hidden>
+      <h2>Team</h2>
+      <p class="lead">Add people and set their first password. They choose their own password the first time they sign in.</p>
+      <div class="team-grid">
+        <form class="new-user" id="newUserForm" novalidate>
+          <div class="field">
+            <label for="nuUser">Username</label>
+            <input type="text" id="nuUser" autocomplete="off" autocapitalize="none" spellcheck="false" placeholder="e.g. weiling" maxlength="32">
+          </div>
+          <div class="field">
+            <label for="nuName">Display name</label>
+            <input type="text" id="nuName" autocomplete="off" placeholder="e.g. Wei Ling" maxlength="100">
+          </div>
+          <div class="field">
+            <label for="nuPass">First password</label>
+            <input type="text" id="nuPass" autocomplete="off" spellcheck="false" value="password">
+          </div>
+          <div class="field">
+            <label for="nuRole">Role</label>
+            <select id="nuRole">
+              <option value="member">Member</option>
+              <option value="admin">Admin</option>
+            </select>
+          </div>
+          <p class="form-error" id="nuError" hidden></p>
+          <p class="form-ok" id="nuOk" hidden></p>
+          <button class="btn-primary" type="submit" id="nuBtn">Add user</button>
+        </form>
+        <div>
+          <p class="team-title" id="teamCount">Team</p>
+          <ul class="team" id="teamList"></ul>
+        </div>
+      </div>
+    </section>
 
-  <section class="owners" id="owners" aria-live="polite">
-    <div class="panel empty"><strong>Loading actions…</strong>Fetching the team's list.</div>
+    <section class="panel" aria-label="Add an action">
+      <form class="add" id="addForm" novalidate>
+        <div class="field wide">
+          <label for="fText">Action agreed</label>
+          <input type="text" id="fText" maxlength="500" placeholder="e.g. Send revised budget to finance" autocomplete="off">
+        </div>
+        <div class="field">
+          <label for="fOwner">Owner</label>
+          <select id="fOwner"></select>
+        </div>
+        <div class="field">
+          <label for="fDue">Due date</label>
+          <input type="date" id="fDue">
+        </div>
+        <button class="btn-primary" id="addBtn" type="submit">Add action</button>
+        <p class="form-error" id="formError" hidden></p>
+      </form>
+    </section>
+
+    <section class="summary" aria-label="Summary">
+      <div class="stat open"><span class="num" id="sOpen">–</span><span class="lbl">Open</span></div>
+      <div class="stat done"><span class="num" id="sDone">–</span><span class="lbl">Done</span></div>
+      <div class="stat late" id="sLateBox"><span class="num" id="sLate">–</span><span class="lbl">Overdue</span></div>
+    </section>
+
+    <div class="note error" id="loadError" hidden>
+      <span id="loadErrorMsg">Couldn't load actions.</span>
+      <button class="btn-link" id="retryLoad" type="button">Try again</button>
+    </div>
+
+    <div class="note" id="exampleNote" hidden>
+      <span>Some of these are example actions so you can see how it works.</span>
+      <button class="btn-link" id="clearExamples" type="button">Remove examples</button>
+    </div>
+
+    <div class="toolbar">
+      <h2>By owner</h2>
+      <label class="toggle"><input type="checkbox" id="showDone" checked> Show done actions</label>
+    </div>
+
+    <section class="owners" id="owners" aria-live="polite">
+      <div class="panel empty"><strong>Loading actions…</strong>Fetching the team's list.</div>
+    </section>
   </section>
 </div>
 
@@ -221,56 +360,223 @@ li.pending { opacity: 0.6; }
 
 <script>
 (function () {
-  // Supabase connection (publishable key is safe to ship in a browser page; access is governed by RLS)
+  // ---------- config ----------
+  // The publishable key is safe in a browser page; Row Level Security decides what each signed-in user can do.
   const SUPABASE_URL = "https://qhvynlhlcyghrzwlrjgh.supabase.co";
   const SUPABASE_KEY = "sb_publishable_TDynZpdz1X8PYptYeylpng_8oBZlpsy";
+  const EMAIL_DOMAIN = "tasktracker.example.com"; // usernames sign in as <username>@EMAIL_DOMAIN; keep in sync with the manage-users function
   const TABLE = "meeting_actions";
-  const COLS = "id,text,owner,due,done,done_at,example,created_at";
+  const COLS = "id,text,owner,owner_id,due,done,done_at,example,created_at,created_by";
   const PREF_KEY = "meeting-action-tracker-showdone";
+  const MIN_PW = 8;
 
   const $ = id => document.getElementById(id);
-  const ownersEl = $("owners");
 
   if (!window.supabase || !window.supabase.createClient) {
-    setConn("down", "Offline");
-    showLoadError("Couldn't load the Supabase library. Check your connection and reload the page.");
+    $("bootView").innerHTML = '<div class="note error"><span>Couldn\'t load the Supabase library. Check your connection and reload the page.</span></div>';
     return;
   }
   const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
+  // ---------- helpers ----------
   const pad = n => String(n).padStart(2, "0");
   const iso = d => d.getFullYear() + "-" + pad(d.getMonth() + 1) + "-" + pad(d.getDate());
   const todayISO = () => iso(new Date());
   const addDays = n => { const d = new Date(); d.setDate(d.getDate() + n); return iso(d); };
-
-  let actions = [];
-  let loaded = false;
-  const pending = new Set();       // ids with a write in flight
-  let showDone = true;
-  try { const p = localStorage.getItem(PREF_KEY); if (p !== null) showDone = p === "1"; } catch (e) {}
-  $("showDone").checked = showDone;
-  $("fDue").value = addDays(7);
-
   const fmt = new Intl.DateTimeFormat(undefined, { weekday: "short", day: "numeric", month: "short" });
   const fmtLong = new Intl.DateTimeFormat(undefined, { weekday: "long", day: "numeric", month: "long", year: "numeric" });
   const parse = s => { const [y, m, d] = s.split("-").map(Number); return new Date(y, m - 1, d); };
   $("todayLabel").textContent = "Today · " + fmtLong.format(new Date());
 
-  const isOverdue = a => !a.done && a.due && a.due < todayISO();
-  const daysLate = a => Math.round((parse(todayISO()) - parse(a.due)) / 86400000);
-
-  function setConn(state, label) { const c = $("conn"); c.className = "conn " + state; c.textContent = label; }
-  function showLoadError(msg) { $("loadErrorMsg").textContent = msg; $("loadError").hidden = false; }
-
-  function initials(name) {
-    const parts = name.trim().split(/\s+/);
-    return ((parts[0] || "")[0] + ((parts[1] || "")[0] || "")).toUpperCase();
-  }
   function el(tag, cls, text) {
     const e = document.createElement(tag);
     if (cls) e.className = cls;
     if (text != null) e.textContent = text;
     return e;
+  }
+  function initials(name) {
+    const parts = String(name).trim().split(/\s+/);
+    return (((parts[0] || "?")[0] || "?") + ((parts[1] || "")[0] || "")).toUpperCase();
+  }
+  function showErr(id, msg) { const e = $(id); e.textContent = msg; e.hidden = !msg; }
+  function busy(btn, on, label) { btn.disabled = on; if (label) btn.textContent = label; }
+
+  // ---------- state ----------
+  let me = null;            // current user's profile
+  let profiles = [];        // whole team
+  let actions = [];
+  let loaded = false;
+  let channel = null;
+  const pending = new Set();
+  let showDone = true;
+  try { const p = localStorage.getItem(PREF_KEY); if (p !== null) showDone = p === "1"; } catch (e) {}
+  $("showDone").checked = showDone;
+
+  const profileById = id => profiles.find(p => p.id === id);
+  const isOverdue = a => !a.done && a.due && a.due < todayISO();
+  const daysLate = a => Math.round((parse(todayISO()) - parse(a.due)) / 86400000);
+
+  // ---------- views ----------
+  function showView(name) {
+    ["bootView", "authView", "pwView", "appView"].forEach(v => { $(v).hidden = v !== name + "View"; });
+    $("userbar").hidden = !me || name === "auth" || name === "boot";
+    $("conn").hidden = name !== "app";
+  }
+
+  function setConn(state, label) { const c = $("conn"); c.className = "conn " + state; c.textContent = label; }
+
+  function fillUserbar() {
+    $("whoName").textContent = me.display_name + " (" + me.username + ")";
+    const admin = me.role === "admin";
+    $("whoRole").hidden = !admin;
+    $("teamBtn").hidden = !admin;
+    if (!admin) { $("teamPanel").hidden = true; $("teamBtn").setAttribute("aria-pressed", "false"); }
+  }
+
+  // ---------- auth ----------
+  let handling = Promise.resolve();
+  sb.auth.onAuthStateChange((event, session) => {
+    if (event === "TOKEN_REFRESHED" || event === "USER_UPDATED") return;
+    // Run outside the auth callback (supabase-js recommends not awaiting other calls inside it)
+    setTimeout(() => { handling = handling.then(() => onSession(session)).catch(console.error); }, 0);
+  });
+
+  async function onSession(session) {
+    if (!session) { teardown(); me = null; showView("auth"); setTimeout(() => $("siUser").focus(), 0); return; }
+    if (me && me.id === session.user.id && !$("appView").hidden) return; // already in
+
+    const { data, error } = await sb.from("profiles")
+      .select("id,username,display_name,role,must_change_password")
+      .eq("id", session.user.id).maybeSingle();
+
+    if (error || !data) {
+      await sb.auth.signOut();
+      showErr("siError", error ? "Couldn't load your account: " + error.message
+                               : "This account isn't set up for the tracker. Ask your admin to add you.");
+      return;
+    }
+    me = data;
+    fillUserbar();
+    if (me.must_change_password) openPasswordView(true);
+    else enterApp();
+  }
+
+  $("signInForm").addEventListener("submit", async e => {
+    e.preventDefault();
+    const raw = $("siUser").value.trim(), pass = $("siPass").value;
+    if (!raw || !pass) { showErr("siError", "Enter your username and password."); return; }
+    showErr("siError", "");
+    const email = raw.includes("@") ? raw.toLowerCase() : raw.toLowerCase() + "@" + EMAIL_DOMAIN;
+    const btn = $("siBtn"); busy(btn, true, "Signing in…");
+    const { error } = await sb.auth.signInWithPassword({ email, password: pass });
+    busy(btn, false, "Sign in");
+    if (error) {
+      showErr("siError", /invalid login/i.test(error.message)
+        ? "That username and password don't match. Check both and try again."
+        : error.message);
+      return;
+    }
+    $("siPass").value = "";
+  });
+
+  async function signOut() {
+    await sb.auth.signOut();
+  }
+  $("signOutBtn").addEventListener("click", signOut);
+  $("pwSignOut").addEventListener("click", signOut);
+
+  // ---------- password ----------
+  let forcedPw = false;
+  function openPasswordView(forced) {
+    forcedPw = forced;
+    $("pwTitle").textContent = forced ? "Choose your password" : "Change your password";
+    $("pwLead").textContent = forced
+      ? "You signed in with a temporary password. Choose your own to continue."
+      : "Choose a new password for " + me.username + ".";
+    $("pwCancel").hidden = forced;
+    $("pwSignOut").hidden = !forced;
+    $("pwNew").value = ""; $("pwConfirm").value = ""; showErr("pwError", "");
+    showView("pw");
+    setTimeout(() => $("pwNew").focus(), 0);
+  }
+  $("changePwBtn").addEventListener("click", () => openPasswordView(false));
+  $("pwCancel").addEventListener("click", () => enterApp());
+
+  $("pwForm").addEventListener("submit", async e => {
+    e.preventDefault();
+    const a = $("pwNew").value, b = $("pwConfirm").value;
+    if (a.length < MIN_PW) { showErr("pwError", "Use at least " + MIN_PW + " characters."); return; }
+    if (a !== b) { showErr("pwError", "The two passwords don't match. Type them again."); return; }
+    if (a.toLowerCase() === "password") { showErr("pwError", "Choose something other than the temporary password."); return; }
+    showErr("pwError", "");
+    const btn = $("pwBtn"); busy(btn, true, "Saving…");
+    const { error } = await sb.auth.updateUser({ password: a });
+    if (error) { busy(btn, false, "Save password"); showErr("pwError", error.message); return; }
+    if (me.must_change_password) {
+      const { error: rpcErr } = await sb.rpc("mark_password_changed");
+      if (rpcErr) { busy(btn, false, "Save password"); showErr("pwError", "Password saved, but couldn't update your account: " + rpcErr.message); return; }
+      me.must_change_password = false;
+    }
+    busy(btn, false, "Save password");
+    enterApp();
+    toast("Password changed", false);
+  });
+
+  // ---------- app ----------
+  async function enterApp() {
+    showView("app");
+    fillUserbar();
+    $("fDue").value = $("fDue").value || addDays(7);
+    await loadProfiles();
+    await loadAll();
+    subscribe();
+  }
+
+  function teardown() {
+    if (channel) { sb.removeChannel(channel); channel = null; }
+    actions = []; profiles = []; loaded = false;
+    $("teamPanel").hidden = true; $("teamBtn").setAttribute("aria-pressed", "false");
+    $("owners").innerHTML = '<div class="panel empty"><strong>Loading actions…</strong>Fetching the team\'s list.</div>';
+  }
+
+  async function loadProfiles() {
+    const { data, error } = await sb.from("profiles")
+      .select("id,username,display_name,role,must_change_password,created_at")
+      .order("display_name");
+    if (error) { showLoadError("Couldn't load the team: " + error.message); return; }
+    profiles = data;
+    const self = profileById(me.id);
+    if (self) me = Object.assign(me, self);
+    renderOwnerSelect();
+    renderTeam();
+    render();
+  }
+
+  function renderOwnerSelect() {
+    const sel = $("fOwner"), keep = sel.value || me.id;
+    sel.innerHTML = "";
+    profiles.forEach(p => {
+      const o = document.createElement("option");
+      o.value = p.id;
+      o.textContent = p.id === me.id ? p.display_name + " (you)" : p.display_name;
+      sel.appendChild(o);
+    });
+    sel.value = profileById(keep) ? keep : me.id;
+  }
+
+  function showLoadError(msg) { $("loadErrorMsg").textContent = msg; $("loadError").hidden = false; }
+
+  async function loadAll() {
+    $("loadError").hidden = true;
+    const { data, error } = await sb.from(TABLE).select(COLS).order("due", { ascending: true });
+    if (error) {
+      showLoadError("Couldn't load actions: " + error.message);
+      if (!loaded) $("owners").innerHTML = "";
+      return;
+    }
+    actions = data;
+    loaded = true;
+    render();
   }
 
   function upsertLocal(row) {
@@ -279,22 +585,10 @@ li.pending { opacity: 0.6; }
   }
   function removeLocal(id) { actions = actions.filter(a => a.id !== id); }
 
-  // ---------- data ----------
-  async function loadAll() {
-    $("loadError").hidden = true;
-    const { data, error } = await sb.from(TABLE).select(COLS).order("due", { ascending: true });
-    if (error) {
-      showLoadError("Couldn't load actions: " + error.message);
-      if (!loaded) { ownersEl.innerHTML = ""; }
-      return;
-    }
-    actions = data;
-    loaded = true;
-    render();
-  }
-
   function subscribe() {
-    sb.channel("meeting-actions-live")
+    if (channel) return;
+    setConn("", "Connecting…");
+    channel = sb.channel("meeting-actions-live")
       .on("postgres_changes", { event: "*", schema: "public", table: TABLE }, payload => {
         if (payload.eventType === "DELETE") removeLocal(payload.old.id);
         else if (!pending.has(payload.new.id)) upsertLocal(payload.new);
@@ -317,22 +611,22 @@ li.pending { opacity: 0.6; }
     render();
   }
 
-  // ---------- render ----------
+  // ---------- render actions ----------
+  function ownerKey(a) { return a.owner_id ? "u:" + a.owner_id : "n:" + String(a.owner).trim().toLowerCase(); }
+
   function render() {
+    if (!me) return;
     const t = todayISO();
     const open = actions.filter(a => !a.done);
+    const late = open.filter(isOverdue).length;
     $("sOpen").textContent = loaded ? open.length : "–";
     $("sDone").textContent = loaded ? actions.length - open.length : "–";
-    const late = open.filter(isOverdue).length;
     $("sLate").textContent = loaded ? late : "–";
     $("sLateBox").classList.toggle("zero", late === 0);
     $("exampleNote").hidden = !actions.some(a => a.example);
-
-    const names = [...new Set(actions.map(a => a.owner.trim()))].sort((a, b) => a.localeCompare(b));
-    const dl = $("ownerList"); dl.innerHTML = "";
-    names.forEach(n => { const o = document.createElement("option"); o.value = n; dl.appendChild(o); });
-
     if (!loaded) return;
+
+    const ownersEl = $("owners");
     ownersEl.innerHTML = "";
     if (!actions.length) {
       const e = el("div", "panel empty");
@@ -344,11 +638,15 @@ li.pending { opacity: 0.6; }
 
     const groups = new Map();
     actions.forEach(a => {
-      const k = a.owner.trim().toLowerCase();
-      if (!groups.has(k)) groups.set(k, { name: a.owner.trim(), items: [] });
+      const k = ownerKey(a);
+      if (!groups.has(k)) {
+        const p = a.owner_id ? profileById(a.owner_id) : null;
+        groups.set(k, { name: p ? p.display_name : String(a.owner).trim(), profile: p, mine: a.owner_id === me.id, items: [] });
+      }
       groups.get(k).items.push(a);
     });
     const list = [...groups.values()].sort((x, y) => {
+      if (x.mine !== y.mine) return x.mine ? -1 : 1;
       const lx = x.items.filter(isOverdue).length, ly = y.items.filter(isOverdue).length;
       if (ly !== lx) return ly - lx;
       const ox = x.items.filter(a => !a.done).length, oy = y.items.filter(a => !a.done).length;
@@ -357,10 +655,13 @@ li.pending { opacity: 0.6; }
     });
 
     list.forEach(g => {
-      const card = el("article", "owner");
+      const card = el("article", "owner" + (g.mine ? " mine" : ""));
       const head = el("div", "owner-head");
       head.appendChild(el("span", "avatar", initials(g.name)));
-      head.appendChild(el("h3", "owner-name", g.name));
+      const title = el("div", "owner-title");
+      title.appendChild(el("h3", "owner-name", g.name));
+      title.appendChild(el("span", "owner-sub", g.mine ? "You" : g.profile ? "@" + g.profile.username : "No account"));
+      head.appendChild(title);
       const openN = g.items.filter(a => !a.done).length;
       const lateN = g.items.filter(isOverdue).length;
       const count = el("span", "owner-count", openN + " open");
@@ -441,6 +742,7 @@ li.pending { opacity: 0.6; }
   });
 
   $("clearExamples").addEventListener("click", () => removeRows(actions.filter(a => a.example), "Examples removed"));
+  $("retryLoad").addEventListener("click", () => { loadProfiles(); loadAll(); });
 
   $("showDone").addEventListener("change", e => {
     showDone = e.target.checked;
@@ -448,36 +750,135 @@ li.pending { opacity: 0.6; }
     render();
   });
 
-  $("retryLoad").addEventListener("click", loadAll);
-
-  // ---------- add ----------
+  // ---------- add action ----------
   $("addForm").addEventListener("submit", async e => {
     e.preventDefault();
-    const text = $("fText").value.trim(), owner = $("fOwner").value.trim(), due = $("fDue").value;
-    const err = $("formError");
+    const text = $("fText").value.trim(), ownerId = $("fOwner").value, due = $("fDue").value;
+    const owner = profileById(ownerId);
     const missing = [!text && "the action", !owner && "an owner", !due && "a due date"].filter(Boolean);
     if (missing.length) {
-      err.textContent = "Add " + missing.join(", ").replace(/, ([^,]*)$/, " and $1") + " to save this action.";
-      err.hidden = false; return;
+      showErr("formError", "Add " + missing.join(", ").replace(/, ([^,]*)$/, " and $1") + " to save this action.");
+      return;
     }
-    err.hidden = true;
-    const match = actions.find(a => a.owner.trim().toLowerCase() === owner.toLowerCase());
-    const btn = $("addBtn"); btn.disabled = true; btn.textContent = "Adding…";
+    showErr("formError", "");
+    const btn = $("addBtn"); busy(btn, true, "Adding…");
     const { data, error } = await sb.from(TABLE)
-      .insert({ text, owner: match ? match.owner.trim() : owner, due })
+      .insert({ text, owner: owner.display_name, owner_id: owner.id, due })
       .select(COLS).single();
-    btn.disabled = false; btn.textContent = "Add action";
-    if (error) { err.textContent = "Couldn't save this action: " + error.message; err.hidden = false; return; }
+    busy(btn, false, "Add action");
+    if (error) { showErr("formError", "Couldn't save this action: " + error.message); return; }
     upsertLocal(data); render();
     $("fText").value = ""; $("fText").focus();
   });
 
-  // ---------- start ----------
-  loadAll();
-  subscribe();
+  // ---------- team admin ----------
+  async function callAdmin(body) {
+    const { data, error } = await sb.functions.invoke("manage-users", { body });
+    if (error) {
+      let msg = error.message;
+      try { const j = await error.context.json(); if (j && j.error) msg = j.error; } catch (e) {}
+      throw new Error(msg);
+    }
+    return data;
+  }
 
-  // catch up after the tab was hidden or the device slept, and roll over overdue status at midnight
-  document.addEventListener("visibilitychange", () => { if (!document.hidden) loadAll(); });
+  $("teamBtn").addEventListener("click", () => {
+    const open = $("teamPanel").hidden;
+    $("teamPanel").hidden = !open;
+    $("teamBtn").setAttribute("aria-pressed", String(open));
+    if (open) { loadProfiles(); setTimeout(() => $("nuUser").focus(), 0); }
+  });
+
+  function renderTeam() {
+    if (!me || me.role !== "admin") return;
+    $("teamCount").textContent = profiles.length + (profiles.length === 1 ? " person" : " people");
+    const ul = $("teamList"); ul.innerHTML = "";
+    profiles.forEach(p => {
+      const li = el("li");
+      li.appendChild(el("span", "avatar", initials(p.display_name)));
+      const info = el("div");
+      info.style.minWidth = "0";
+      info.appendChild(el("div", "member-name", p.display_name + (p.id === me.id ? " (you)" : "")));
+      const sub = el("div", "member-sub");
+      sub.appendChild(el("span", null, "@" + p.username));
+      if (p.role === "admin") sub.appendChild(el("span", "pill on", "Admin"));
+      sub.appendChild(el("span", "pill " + (p.must_change_password ? "wait" : "on"),
+        p.must_change_password ? "Hasn't set password" : "Active"));
+      info.appendChild(sub);
+      li.appendChild(info);
+
+      const reset = el("button", "btn-ghost", "Reset password");
+      reset.type = "button";
+      li.appendChild(reset);
+
+      const row = el("form", "reset-row");
+      row.hidden = true;
+      row.noValidate = true;
+      const inp = document.createElement("input");
+      inp.type = "text"; inp.value = "password"; inp.id = "rp-" + p.id; inp.spellcheck = false;
+      inp.setAttribute("aria-label", "New temporary password for " + p.display_name);
+      const go = el("button", "btn-primary", "Set password"); go.type = "submit";
+      const cancel = el("button", "btn-link", "Cancel"); cancel.type = "button";
+      const msg = el("p", "form-error"); msg.hidden = true; msg.style.flexBasis = "100%";
+      row.append(inp, go, cancel, msg);
+      li.appendChild(row);
+
+      reset.addEventListener("click", () => { row.hidden = !row.hidden; if (!row.hidden) inp.focus(); });
+      cancel.addEventListener("click", () => { row.hidden = true; });
+      row.addEventListener("submit", async ev => {
+        ev.preventDefault();
+        if (inp.value.length < MIN_PW) { msg.textContent = "Use at least " + MIN_PW + " characters."; msg.hidden = false; return; }
+        busy(go, true, "Saving…");
+        try {
+          await callAdmin({ action: "reset_password", user_id: p.id, password: inp.value });
+          toast(p.display_name + "'s password was reset. They'll choose a new one at next sign-in.", false);
+          if (p.id === me.id) { me.must_change_password = true; }
+          await loadProfiles();
+          if (p.id === me.id) openPasswordView(true);
+        } catch (err) {
+          busy(go, false, "Set password");
+          msg.textContent = err.message; msg.hidden = false;
+        }
+      });
+
+      ul.appendChild(li);
+    });
+  }
+
+  $("nuUser").addEventListener("input", e => {
+    const v = e.target.value.toLowerCase().replace(/[^a-z0-9._-]/g, "");
+    if (v !== e.target.value) e.target.value = v;
+  });
+
+  $("newUserForm").addEventListener("submit", async e => {
+    e.preventDefault();
+    const username = $("nuUser").value.trim().toLowerCase();
+    const display_name = $("nuName").value.trim() || username;
+    const password = $("nuPass").value;
+    const role = $("nuRole").value;
+    showErr("nuOk", "");
+    if (!/^[a-z0-9._-]{2,32}$/.test(username)) { showErr("nuError", "Usernames need 2–32 lowercase letters, numbers, dots, dashes or underscores."); return; }
+    if (password.length < MIN_PW) { showErr("nuError", "The first password needs at least " + MIN_PW + " characters."); return; }
+    if (profiles.some(p => p.username === username)) { showErr("nuError", 'The username "' + username + '" is already taken.'); return; }
+    showErr("nuError", "");
+    const btn = $("nuBtn"); busy(btn, true, "Adding…");
+    try {
+      await callAdmin({ action: "create", username, display_name, password, role });
+      showErr("nuOk", display_name + " can now sign in as " + username + ". They'll choose their own password the first time.");
+      $("nuUser").value = ""; $("nuName").value = ""; $("nuRole").value = "member";
+      await loadProfiles();
+      $("nuUser").focus();
+    } catch (err) {
+      showErr("nuError", err.message);
+    } finally {
+      busy(btn, false, "Add user");
+    }
+  });
+
+  // ---------- keep fresh ----------
+  document.addEventListener("visibilitychange", () => {
+    if (!document.hidden && me && !$("appView").hidden) { loadProfiles(); loadAll(); }
+  });
   let lastDay = todayISO();
   setInterval(() => {
     if (todayISO() !== lastDay) { lastDay = todayISO(); $("todayLabel").textContent = "Today · " + fmtLong.format(new Date()); render(); }

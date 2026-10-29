@@ -1,13 +1,49 @@
 # Meeting Action Tracker
 
-A single-page tracker for actions agreed in meetings. Add an action with an owner and due date, tick it off when it's done, and see open, done and overdue counts at a glance. Data lives in Supabase and updates live for everyone who has the page open.
+A single-page tracker for actions agreed in meetings. Team members sign in, add an action with an owner and due date, tick it off when it's done, and see open, done and overdue counts at a glance. Data lives in Supabase and updates live for everyone who has the page open.
+
+## Signing in
+
+| Username | Role   | First password |
+|----------|--------|----------------|
+| admin    | Admin  | `password`     |
+| priya    | Member | `password`     |
+| dan      | Member | `password`     |
+| marcus   | Member | `password`     |
+
+Everyone must choose their own password the first time they sign in. The app won't show the tracker until they do.
+
+Usernames map to Supabase Auth accounts as `<username>@tasktracker.example.com`. Nobody needs to know that address; the sign-in form takes the username. No emails are sent to it.
+
+### Managing the team
+
+Sign in as an admin and choose **Manage team** to:
+
+- **Add a user**: username, display name, first password (defaults to `password`) and role. They choose their own password at first sign-in.
+- **Reset a password**: sets a new temporary password. The person must choose their own again at next sign-in.
+
+Every user can change their own password with **Change password**, and sign out with **Sign out**.
 
 ## How it works
 
-- `index.html` is the whole app: plain HTML, CSS and JavaScript with no build step.
-- It loads [supabase-js](https://github.com/supabase/supabase-js) 2.45.4 from jsDelivr and talks to the `meeting_actions` table using the project's publishable key.
-- Realtime is enabled on the table, so ticks, additions and deletions appear on every open screen within a second or two.
-- Only the "Show done actions" toggle is stored in the browser (localStorage).
+- `index.html` is the whole app: plain HTML, CSS and JavaScript, no build step. It loads [supabase-js](https://github.com/supabase/supabase-js) 2.45.4 from jsDelivr.
+- Passwords are stored and checked by Supabase Auth (`auth.users`). The app never sees or stores them.
+- `public.profiles` holds each person's username, display name, role and whether they still need to set a password. A profile is created automatically when an account is created with a username in its app metadata.
+- `public.meeting_actions` holds the actions. `owner_id` links each action to its owner's profile; `created_by` records who added it.
+- Only signed-in team members (accounts with a profile) can read or change anything. Anonymous visitors and self-made sign-ups see nothing.
+- The `manage-users` Edge Function adds users and resets passwords using the Auth admin API. It checks that the caller is an admin, and the service key never leaves Supabase.
+
+## Repository layout
+
+```
+index.html                               The app
+vercel.json                              Security headers for Vercel
+supabase/migrations/                     Database schema, in the order applied
+supabase/seed_users.sql                  The four starting accounts (already applied)
+supabase/functions/manage-users/index.ts Admin user management
+```
+
+All of this is already live on project `qhvynlhlcyghrzwlrjgh` (region ap-southeast-1). The files are here so the setup can be reviewed or rebuilt.
 
 ## Deploy to Vercel
 
@@ -17,28 +53,24 @@ A single-page tracker for actions agreed in meetings. Add an action with an owne
 
 Every push to `main` redeploys automatically.
 
-`vercel.json` adds security headers, including a Content-Security-Policy that only allows scripts from jsDelivr, fonts from Google Fonts and network requests to this Supabase project. If you move to a different Supabase project or add another script or font source, update `connect-src`, `script-src` or `font-src` there too, or the page will be blocked from loading it.
+`vercel.json` adds a Content-Security-Policy that only allows scripts from jsDelivr, fonts from Google Fonts and network requests to this Supabase project (database, auth, realtime and Edge Functions all use that host). If you add another script, font or API source, update the matching directive or the browser will block it.
 
-## Supabase setup
+## Recommended Supabase settings
 
-Project: `qhvynlhlcyghrzwlrjgh` (region ap-southeast-1).
+In the Supabase dashboard under **Authentication → Sign In / Providers**:
 
-Table `public.meeting_actions`:
+- Turn off **Allow new users to sign up**. Self sign-ups already get no access, but this stops stray accounts being created.
+- Turn on **Leaked password protection** so people can't choose passwords that appear in known breaches.
 
-| Column      | Type        | Notes                                  |
-|-------------|-------------|----------------------------------------|
-| id          | uuid        | Primary key, `gen_random_uuid()`       |
-| text        | text        | The action, 1–500 characters           |
-| owner       | text        | Who owns it, 1–100 characters          |
-| due         | date        | Due date                               |
-| done        | boolean     | Default `false`                        |
-| done_at     | timestamptz | Set when ticked                        |
-| example     | boolean     | Marks sample rows; "Remove examples" deletes them |
-| created_at  | timestamptz | Default `now()`                        |
+## Deploying the Edge Function again
 
-Row Level Security is on, with policies that let anyone using the publishable key read, add, update and delete actions. That suits an internal tool whose URL isn't shared publicly. To restrict it to your team, add Supabase Auth and change the policies from `to anon, authenticated` to `to authenticated`.
+If you change `supabase/functions/manage-users/index.ts`:
 
-The publishable key in `index.html` is designed to be public; access is controlled by the RLS policies, not by keeping the key secret. Never put the `service_role` or a secret key in this file.
+```bash
+supabase functions deploy manage-users --project-ref qhvynlhlcyghrzwlrjgh --no-verify-jwt
+```
+
+The function verifies the caller's session itself, so gateway JWT checking is off.
 
 ## Run locally
 
